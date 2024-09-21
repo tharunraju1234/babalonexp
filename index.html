@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AR .glb loading scene</title>
+    <meta charset="UTF-8" />
+    <!-- Babylon.js library -->
+    <script src="https://preview.babylonjs.com/babylon.js"></script>
+    <!-- Loaders for Babylon.js to handle glTF and .glb -->
+    <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <!-- WebXR support -->
+    <script src="https://preview.babylonjs.com/xr/babylon.xr.js"></script>
+    <style>
+      html,
+      body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #canvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+
+      #enterARButton {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <button id="enterARButton">Enter AR</button>
+    <script type="text/javascript">
+      const canvas = document.getElementById("canvas");
+      const engine = new BABYLON.Engine(canvas, true);
+      let xrHelper = null;
+
+      BABYLON.SceneLoader.Load("", "tharun.glb", engine, function (scene) {
+        // Set up the scene with a default camera and environment
+        scene.createDefaultCamera(true, true, true);
+        scene.createDefaultEnvironment({
+          createGround: false,
+          createSkybox: false,
+        });
+
+        // Run the render loop
+        engine.runRenderLoop(function () {
+          scene.render();
+        });
+
+        window.addEventListener("resize", function () {
+          engine.resize();
+        });
+
+        // Set up WebXR for AR
+        scene.createDefaultXRExperienceAsync({ 
+          uiOptions: { 
+            sessionMode: "immersive-ar",  // AR mode
+            referenceSpaceType: "local-floor"  // Real-world surface tracking
+          }
+        }).then((xr) => {
+          xrHelper = xr;
+          // Enable hit testing for placing objects in the real world
+          xr.baseExperience.featuresManager.enableFeature(
+            BABYLON.WebXRHitTest,
+            "latest"
+          );
+
+          // When entering AR mode
+          document.getElementById("enterARButton").addEventListener("click", function() {
+            xr.baseExperience.enterXRAsync("immersive-ar", "local-floor");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
